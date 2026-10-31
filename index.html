@@ -30,8 +30,8 @@
           <p class="eyebrow"><span class="eyebrow-line"></span> ORGANIZE EM SEGUNDOS</p>
           <h1 id="page-title">Do currículo ao <span>essencial.</span></h1>
           <p class="intro-copy">
-            Cole o texto de um currículo e organize contatos, formação, objetivo e outras
-            informações em blocos prontos para revisar.
+            Cole o texto ou envie um arquivo PDF ou Word para organizar contatos, formação,
+            objetivo e outras informações em blocos prontos para revisar.
           </p>
         </section>
 
@@ -42,7 +42,7 @@
                 <span class="step-label">ETAPA 01</span>
                 <h2>Adicione o currículo</h2>
               </div>
-              <span class="file-type">TEXTO</span>
+              <span class="file-type">TXT · MD · PDF · DOCX</span>
             </div>
 
             <label class="sr-only" for="resume-text">Texto do currículo</label>
@@ -65,9 +65,9 @@
               </span>
               <div class="drop-copy">
                 <strong>Prefere enviar um arquivo?</strong>
-                <span>Arraste um .txt ou <button class="text-button" id="choose-file" type="button">escolha no dispositivo</button></span>
+                <span>Arraste um .txt, .md, .pdf ou .docx, ou <button class="text-button" id="choose-file" type="button">escolha no dispositivo</button></span>
               </div>
-              <input id="file-input" type="file" accept=".txt,.md,text/plain,text/markdown" hidden />
+              <input id="file-input" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
             </div>
 
             <div class="privacy-note">
@@ -75,7 +75,7 @@
                 <rect x="4.5" y="8.5" width="11" height="8" rx="1.5" />
                 <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5m-3 3v2" />
               </svg>
-              Seu texto é processado neste navegador e não é enviado para um servidor.
+              Seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF e Word são carregados do jsDelivr.
             </div>
 
             <div class="form-actions">

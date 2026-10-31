@@ -1,4 +1,5 @@
 import { parseResume } from "./resume-parser.mjs";
+import { extractResumeText, ResumeFileError } from "./document-extractor.mjs";
 
 const input = document.querySelector("#resume-text");
 const processButton = document.querySelector("#process-button");
@@ -227,17 +228,24 @@ function resetApp() {
 
 async function loadFile(file) {
   if (!file) return;
-  if (!/\.(txt|md)$/i.test(file.name) && !["text/plain", "text/markdown"].includes(file.type)) {
-    showError("Envie um arquivo .txt ou .md. Para outros formatos, copie e cole o texto do currículo.");
-    return;
-  }
+  const buttonLabel = processButton.querySelector("span");
+  processButton.disabled = true;
+  buttonLabel.textContent = "Lendo arquivo…";
   try {
-    input.value = await file.text();
+    input.value = await extractResumeText(file);
     updateCharacterCount();
     clearError();
-    showToast(`Arquivo "${file.name}" carregado.`);
-  } catch {
-    showError("Não foi possível ler o arquivo. Tente copiar o texto e colar no campo.");
+    showToast(`Arquivo "${file.name}" carregado. Revise o texto antes de organizar.`);
+  } catch (error) {
+    showError(
+      error instanceof ResumeFileError
+        ? error.message
+        : "Não foi possível ler este arquivo. Verifique se ele está íntegro ou cole o texto do currículo.",
+    );
+  } finally {
+    fileInput.value = "";
+    processButton.disabled = false;
+    buttonLabel.textContent = "Organizar currículo";
   }
 }
 
