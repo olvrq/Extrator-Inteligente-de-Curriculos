@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Organize as informações de um currículo em blocos estruturados, diretamente no navegador."
+    />
+    <meta name="theme-color" content="#f7f7f8" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Currículo em blocos — extrator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Currículo em blocos, início">
+          <span class="brand-mark" aria-hidden="true">cv</span>
+          <span>currículo<span class="brand-light">em blocos</span></span>
+        </a>
+        <span class="privacy-pill">
+          <span class="privacy-dot" aria-hidden="true"></span>
+          Processamento local
+        </span>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <p class="eyebrow"><span class="eyebrow-line"></span> ORGANIZE EM SEGUNDOS</p>
+          <h1 id="page-title">Do currículo ao <span>essencial.</span></h1>
+          <p class="intro-copy">
+            Cole o texto de um currículo e organize contatos, formação, objetivo e outras
+            informações em blocos prontos para revisar.
+          </p>
+        </section>
+
+        <section class="workspace" aria-label="Extrator de currículos">
+          <div class="input-panel panel">
+            <div class="panel-heading">
+              <div>
+                <span class="step-label">ETAPA 01</span>
+                <h2>Adicione o currículo</h2>
+              </div>
+              <span class="file-type">TEXTO</span>
+            </div>
+
+            <label class="sr-only" for="resume-text">Texto do currículo</label>
+            <textarea
+              id="resume-text"
+              spellcheck="false"
+              placeholder="Cole aqui o texto completo do currículo…&#10;&#10;Dica: inclua títulos como Formação, Objetivo, Cursos, Idiomas e Projetos para uma organização mais precisa."
+            ></textarea>
+
+            <div class="input-meta">
+              <span id="character-count">0 caracteres</span>
+              <button class="text-button" id="load-example" type="button">Usar exemplo</button>
+            </div>
+
+            <div class="drop-zone" id="drop-zone">
+              <span class="upload-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14.5v4A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-4" />
+                </svg>
+              </span>
+              <div class="drop-copy">
+                <strong>Prefere enviar um arquivo?</strong>
+                <span>Arraste um .txt ou <button class="text-button" id="choose-file" type="button">escolha no dispositivo</button></span>
+              </div>
+              <input id="file-input" type="file" accept=".txt,.md,text/plain,text/markdown" hidden />
+            </div>
+
+            <div class="privacy-note">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <rect x="4.5" y="8.5" width="11" height="8" rx="1.5" />
+                <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5m-3 3v2" />
+              </svg>
+              Seu texto é processado neste navegador e não é enviado para um servidor.
+            </div>
+
+            <div class="form-actions">
+              <button class="primary-button" id="process-button" type="button">
+                <span>Organizar currículo</span>
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M4 10h12m-5-5 5 5-5 5" />
+                </svg>
+              </button>
+              <button class="clear-button" id="clear-button" type="button">Limpar</button>
+            </div>
+            <p class="input-error" id="input-error" role="alert" hidden></p>
+          </div>
+
+          <div class="result-panel panel" aria-live="polite" aria-busy="false">
+            <div class="panel-heading result-heading">
+              <div>
+                <span class="step-label">ETAPA 02</span>
+                <h2>Informações organizadas</h2>
+              </div>
+              <span class="result-count" id="result-count" hidden></span>
+            </div>
+
+            <div class="empty-state" id="empty-state">
+              <div class="empty-illustration" aria-hidden="true">
+                <div class="paper paper-back"></div>
+                <div class="paper paper-front">
+                  <span></span><span></span><span></span><i></i>
+                </div>
+                <span class="spark spark-one"></span>
+                <span class="spark spark-two"></span>
+              </div>
+              <h3>Seu resultado aparece aqui</h3>
+              <p>Adicione um currículo ao lado e clique em <strong>Organizar currículo</strong>.</p>
+            </div>
+
+            <div class="results-content" id="results-content" hidden>
+              <div class="results-toolbar">
+                <p id="result-summary"></p>
+                <div class="toolbar-actions">
+                  <button class="subtle-button" id="copy-button" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <rect x="7" y="6" width="9" height="11" rx="1.5" />
+                      <path d="M13 6V4.5A1.5 1.5 0 0 0 11.5 3h-7A1.5 1.5 0 0 0 3 4.5v9A1.5 1.5 0 0 0 4.5 15H7" />
+                    </svg>
+                    <span>Copiar JSON</span>
+                  </button>
+                  <button class="subtle-button" id="download-button" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2" />
+                    </svg>
+                    <span>Baixar</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="block-list" id="block-list"></div>
+
+              <details class="json-details">
+                <summary>
+                  <span>Ver resultado em JSON</span>
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m5 7.5 5 5 5-5" />
+                  </svg>
+                </summary>
+                <pre id="json-output"></pre>
+              </details>
+              <p class="review-note">
+                A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de
+                usá-los: currículos sem títulos claros podem precisar de ajustes.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Feito para organizar, não para adivinhar.</span>
+        <span>Suas informações continuam no seu dispositivo.</span>
+      </footer>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
