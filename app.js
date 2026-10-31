@@ -1,4 +1,4 @@
-import { parseResume } from "./resume-parser.mjs";
+import { isResumeResult, parseResume } from "./resume-parser.mjs";
 import { extractResumeText, ResumeFileError } from "./document-extractor.mjs";
 
 const input = document.querySelector("#resume-text");
@@ -15,6 +15,13 @@ const resultSummary = document.querySelector("#result-summary");
 const blockList = document.querySelector("#block-list");
 const jsonOutput = document.querySelector("#json-output");
 const toast = document.querySelector("#toast");
+const localMode = document.querySelector("#mode-local");
+const aiMode = document.querySelector("#mode-ai");
+const aiConsentPanel = document.querySelector("#ai-consent-panel");
+const aiConsent = document.querySelector("#ai-consent");
+const privacyPill = document.querySelector("#privacy-pill");
+const privacyNote = document.querySelector("#privacy-note-text");
+const reviewNote = document.querySelector("#review-note");
 
 let currentResult = null;
 let toastTimeout;
@@ -173,10 +180,14 @@ function countRecognizedValues(value) {
   return value ? 1 : 0;
 }
 
-function renderResult(result) {
+function renderResult(result, mode = "local") {
   currentResult = result;
   blockList.replaceChildren(...BLOCKS.map((block) => renderBlock(block, result)));
   jsonOutput.textContent = JSON.stringify([result], null, 2);
+  reviewNote.textContent =
+    mode === "ai"
+      ? "A IA ajudou a organizar o currículo após seu consentimento. Confira todos os campos antes de usar."
+      : "A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de usá-los: currículos sem títulos claros podem precisar de ajustes.";
 
   const found = countRecognizedValues(result);
   resultCount.textContent = `${found} ${found === 1 ? "dado" : "dados"}`;
@@ -189,7 +200,38 @@ function renderResult(result) {
   resultsContent.hidden = false;
 }
 
-function processResume() {
+async function extractWithAI(text) {
+  let response;
+  try {
+    response = await fetch("/api/ai/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, consent: aiConsent.checked }),
+    });
+  } catch {
+    throw new Error("Não foi possível acessar o serviço de IA. Seu texto continua no campo; tente novamente ou use o modo local.");
+  }
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error("O serviço de IA retornou uma resposta inválida. Seu texto continua no campo.");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error ||
+        "Não foi possível organizar com IA. Seu texto continua no campo; tente novamente ou use o modo local.",
+    );
+  }
+  if (!isResumeResult(payload?.result)) {
+    throw new Error("A resposta da IA não passou pela validação. Seu texto continua no campo; tente novamente.");
+  }
+  return payload.result;
+}
+
+async function processResume() {
   clearError();
   const text = input.value.trim();
   if (!text) {
@@ -198,22 +240,42 @@ function processResume() {
     return;
   }
 
+  const mode = aiMode.checked ? "ai" : "local";
+  if (mode === "ai" && !aiConsent.checked) {
+    showError("Confirme o consentimento antes de enviar o currículo à OpenAI.");
+    aiConsent.focus();
+    return;
+  }
+
   processButton.disabled = true;
-  processButton.querySelector("span").textContent = "Organizando…";
-  window.setTimeout(() => {
-    try {
-      renderResult(parseResume(text));
-    } catch {
-      showError("Não foi possível organizar este texto. Confira o conteúdo e tente novamente.");
-    } finally {
-      processButton.disabled = false;
-      processButton.querySelector("span").textContent = "Organizar currículo";
-    }
-  }, 120);
+  processButton.querySelector("span").textContent = mode === "ai" ? "Enviando com consentimento…" : "Organizando…";
+  try {
+    const result = mode === "ai" ? await extractWithAI(text) : parseResume(text);
+    renderResult(result, mode);
+  } catch (error) {
+    showError(error instanceof Error ? error.message : "Não foi possível organizar este texto. Confira o conteúdo e tente novamente.");
+  } finally {
+    processButton.disabled = false;
+    processButton.querySelector("span").textContent = "Organizar currículo";
+  }
+}
+
+function updateProcessingMode() {
+  const useAI = aiMode.checked;
+  aiConsentPanel.hidden = !useAI;
+  privacyPill.lastChild.textContent = useAI ? "IA selecionada" : "Processamento local";
+  privacyNote.textContent = useAI
+    ? "O arquivo é lido neste navegador. O texto integral só será enviado à OpenAI após seu consentimento. Os leitores de PDF e Word são carregados do jsDelivr."
+    : "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF e Word são carregados do jsDelivr.";
+  if (!useAI) aiConsent.checked = false;
+  clearError();
 }
 
 function resetApp() {
   input.value = "";
+  localMode.checked = true;
+  aiConsent.checked = false;
+  updateProcessingMode();
   currentResult = null;
   clearError();
   updateCharacterCount();
@@ -233,6 +295,7 @@ async function loadFile(file) {
   buttonLabel.textContent = "Lendo arquivo…";
   try {
     input.value = await extractResumeText(file);
+    aiConsent.checked = false;
     updateCharacterCount();
     clearError();
     showToast(`Arquivo "${file.name}" carregado. Revise o texto antes de organizar.`);
@@ -285,13 +348,17 @@ function downloadResult() {
 }
 
 input.addEventListener("input", () => {
+  aiConsent.checked = false;
   updateCharacterCount();
   clearError();
 });
 processButton.addEventListener("click", processResume);
 clearButton.addEventListener("click", resetApp);
+localMode.addEventListener("change", updateProcessingMode);
+aiMode.addEventListener("change", updateProcessingMode);
 document.querySelector("#load-example").addEventListener("click", () => {
   input.value = SAMPLE_RESUME;
+  aiConsent.checked = false;
   updateCharacterCount();
   clearError();
   input.focus();
@@ -320,3 +387,4 @@ dropZone.addEventListener("click", (event) => {
 });
 
 updateCharacterCount();
+updateProcessingMode();

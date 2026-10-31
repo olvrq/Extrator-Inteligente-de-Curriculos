@@ -25,6 +25,94 @@ const SECTION_ALIASES = {
   experience: ["experiencia profissional", "experiencia", "historico profissional", "professional experience", "experience"],
 };
 
+const nullableString = { type: ["string", "null"] };
+const stringList = { type: "array", items: { type: "string" } };
+
+function objectSchema(properties) {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties,
+    required: Object.keys(properties),
+  };
+}
+
+/**
+ * JSON Schema sent to the AI service and used to validate every AI result.
+ */
+export const RESUME_RESULT_SCHEMA = objectSchema({
+  bloco_1_contato: objectSchema({
+    nome: nullableString,
+    email: nullableString,
+    telefone: nullableString,
+    linkedin: nullableString,
+    github: nullableString,
+  }),
+  bloco_2_objetivo: nullableString,
+  bloco_3_formacao_academica: stringList,
+  bloco_4_cursos_e_linguagens: objectSchema({
+    cursos: stringList,
+    habilidades: stringList,
+    idiomas: stringList,
+  }),
+  bloco_5_informacoes_extras: objectSchema({
+    experiencia_profissional: stringList,
+    projetos: stringList,
+    links: stringList,
+  }),
+});
+
+function hasExactKeys(value, expectedKeys) {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value).length === expectedKeys.length &&
+    expectedKeys.every((key) => Object.hasOwn(value, key))
+  );
+}
+
+function isNullableString(value) {
+  return value === null || typeof value === "string";
+}
+
+function isStringList(value) {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+/**
+ * Confirms that a parsed or remote result matches the exact UI/export shape.
+ */
+export function isResumeResult(value) {
+  const contactKeys = ["nome", "email", "telefone", "linkedin", "github"];
+  const courseKeys = ["cursos", "habilidades", "idiomas"];
+  const extraKeys = ["experiencia_profissional", "projetos", "links"];
+  const rootKeys = [
+    "bloco_1_contato",
+    "bloco_2_objetivo",
+    "bloco_3_formacao_academica",
+    "bloco_4_cursos_e_linguagens",
+    "bloco_5_informacoes_extras",
+  ];
+
+  if (!hasExactKeys(value, rootKeys)) return false;
+
+  const contact = value.bloco_1_contato;
+  const courses = value.bloco_4_cursos_e_linguagens;
+  const extras = value.bloco_5_informacoes_extras;
+
+  return (
+    hasExactKeys(contact, contactKeys) &&
+    contactKeys.every((key) => isNullableString(contact[key])) &&
+    isNullableString(value.bloco_2_objetivo) &&
+    isStringList(value.bloco_3_formacao_academica) &&
+    hasExactKeys(courses, courseKeys) &&
+    courseKeys.every((key) => isStringList(courses[key])) &&
+    hasExactKeys(extras, extraKeys) &&
+    extraKeys.every((key) => isStringList(extras[key]))
+  );
+}
+
 const normalize = (value) =>
   value
     .normalize("NFD")

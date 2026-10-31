@@ -19,7 +19,7 @@
           <span class="brand-mark" aria-hidden="true">cv</span>
           <span>currículo<span class="brand-light">em blocos</span></span>
         </a>
-        <span class="privacy-pill">
+        <span class="privacy-pill" id="privacy-pill">
           <span class="privacy-dot" aria-hidden="true"></span>
           Processamento local
         </span>
@@ -57,6 +57,35 @@
               <button class="text-button" id="load-example" type="button">Usar exemplo</button>
             </div>
 
+            <fieldset class="processing-options">
+              <legend>Como organizar o currículo?</legend>
+              <label class="processing-option">
+                <input id="mode-local" name="processing-mode" type="radio" value="local" checked />
+                <span>
+                  <strong>Local</strong>
+                  <small>O texto fica neste navegador.</small>
+                </span>
+              </label>
+              <label class="processing-option">
+                <input id="mode-ai" name="processing-mode" type="radio" value="ai" />
+                <span>
+                  <strong>Com IA</strong>
+                  <small>Ajuda a identificar informações sem títulos padronizados.</small>
+                </span>
+              </label>
+            </fieldset>
+
+            <div class="ai-consent-panel" id="ai-consent-panel" hidden>
+              <p class="ai-processing-notice">
+                A opção com IA envia o texto integral do currículo à OpenAI para processamento.
+                Ele pode conter dados pessoais. O aplicativo não armazena esse texto no servidor.
+              </p>
+              <label class="ai-consent">
+                <input id="ai-consent" type="checkbox" />
+                <span>Concordo em enviar este currículo à OpenAI para extração.</span>
+              </label>
+            </div>
+
             <div class="drop-zone" id="drop-zone">
               <span class="upload-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none">
@@ -75,7 +104,7 @@
                 <rect x="4.5" y="8.5" width="11" height="8" rx="1.5" />
                 <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5m-3 3v2" />
               </svg>
-              Seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF e Word são carregados do jsDelivr.
+              <span id="privacy-note-text">No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF e Word são carregados do jsDelivr.</span>
             </div>
 
             <div class="form-actions">
@@ -143,10 +172,7 @@
                 </summary>
                 <pre id="json-output"></pre>
               </details>
-              <p class="review-note">
-                A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de
-                usá-los: currículos sem títulos claros podem precisar de ajustes.
-              </p>
+              <p class="review-note" id="review-note"></p>
             </div>
           </div>
         </section>
@@ -154,7 +180,7 @@
 
       <footer class="footer">
         <span>Feito para organizar, não para adivinhar.</span>
-        <span>Suas informações continuam no seu dispositivo.</span>
+        <span>No modo IA, o envio só ocorre após seu consentimento.</span>
       </footer>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
