@@ -1,0 +1,24 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/olvrq/Extrator-Inteligente-de-Curriculos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/olvrq/Extrator-Inteligente-de-Curriculos/issues"
+  },
+  "homepage": "https://github.com/olvrq/Extrator-Inteligente-de-Curriculos#readme",
+  "dependencies": {
+    "@supabase/server": "^1.9.2"
+  }
+}

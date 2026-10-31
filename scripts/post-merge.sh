@@ -20,6 +20,12 @@ for file in "${required_files[@]}"; do
   fi
 done
 
+if [[ -f "package-lock.json" ]]; then
+  npm ci --no-audit --no-fund
+elif [[ -f "package.json" ]]; then
+  npm install --no-audit --no-fund
+fi
+
 node --check resume-parser.mjs
 node --check document-extractor.mjs
 node --input-type=module --check < app.js
