@@ -240,7 +240,7 @@ export function createAppServer({
     }
 
     try {
-      const result = await extractWithOpenAI(body.text.trim(), key, fetchImpl);
+      const result = await extractWithOpenAI(body.text, key, fetchImpl);
       sendJson(response, 200, { result });
     } catch (error) {
       sendJson(response, error.status ?? 502, { error: publicError(error) });

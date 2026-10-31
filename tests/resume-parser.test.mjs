@@ -36,6 +36,7 @@ let server;
 let baseUrl;
 let openAiCalls = 0;
 let aiResponseContent = JSON.stringify(VALID_AI_RESULT);
+let aiInputText = null;
 
 before(async () => {
   server = createAppServer({
@@ -48,6 +49,7 @@ before(async () => {
       const requestBody = JSON.parse(options.body);
       assert.equal(requestBody.model, "gpt-4o-mini");
       assert.equal(requestBody.response_format.json_schema.strict, true);
+      aiInputText = requestBody.messages[1].content;
       return new Response(
         JSON.stringify({
           choices: [{ message: { content: aiResponseContent } }],
@@ -109,6 +111,19 @@ test("AI endpoint validates the service response before returning it", async () 
   const payload = await response.json();
   assert.equal(isResumeResult(payload.result), true);
   assert.equal(openAiCalls, 1);
+});
+
+test("AI endpoint forwards the reviewed text exactly as submitted", async () => {
+  aiResponseContent = JSON.stringify(VALID_AI_RESULT);
+  const reviewedText = "  Currículo revisado\nsem e-mail ou telefone  \n";
+  const response = await fetch(`${baseUrl}/api/ai/extract`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: reviewedText, consent: true }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(aiInputText, reviewedText);
 });
 
 test("AI endpoint rejects malformed service output", async () => {

@@ -19,6 +19,7 @@ const localMode = document.querySelector("#mode-local");
 const aiMode = document.querySelector("#mode-ai");
 const aiConsentPanel = document.querySelector("#ai-consent-panel");
 const aiConsent = document.querySelector("#ai-consent");
+const aiReviewText = document.querySelector("#ai-review-text");
 const privacyPill = document.querySelector("#privacy-pill");
 const privacyNote = document.querySelector("#privacy-note-text");
 const reviewNote = document.querySelector("#review-note");
@@ -107,6 +108,11 @@ function showError(message) {
 function clearError() {
   inputError.textContent = "";
   inputError.hidden = true;
+}
+
+function syncAIReviewText() {
+  aiReviewText.value = input.value;
+  aiConsent.checked = false;
 }
 
 function showToast(message) {
@@ -259,11 +265,16 @@ async function processResume() {
     aiConsent.focus();
     return;
   }
+  if (mode === "ai" && !aiReviewText.value.trim()) {
+    showError("O texto revisado está vazio. Adicione conteúdo antes de enviar à OpenAI.");
+    aiReviewText.focus();
+    return;
+  }
 
   processButton.disabled = true;
   processButton.querySelector("span").textContent = mode === "ai" ? "Enviando com consentimento…" : "Organizando…";
   try {
-    const result = mode === "ai" ? await extractWithAI(text) : parseResume(text);
+    const result = mode === "ai" ? await extractWithAI(aiReviewText.value) : parseResume(text);
     renderResult(result, mode);
   } catch (error) {
     showError(error instanceof Error ? error.message : "Não foi possível organizar este texto. Confira o conteúdo e tente novamente.");
@@ -276,9 +287,10 @@ async function processResume() {
 function updateProcessingMode() {
   const useAI = aiMode.checked;
   aiConsentPanel.hidden = !useAI;
+  if (useAI && aiReviewText.value === "" && input.value !== "") syncAIReviewText();
   privacyPill.lastChild.textContent = useAI ? "IA selecionada" : "Processamento local";
   privacyNote.textContent = useAI
-    ? "O arquivo é lido neste navegador. O texto integral só será enviado à OpenAI após seu consentimento. Os leitores de PDF e Word são carregados do jsDelivr."
+    ? "O arquivo é lido neste navegador. Somente o texto revisado acima será enviado à OpenAI após seu consentimento. Os leitores de PDF e Word são carregados do jsDelivr."
     : "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF e Word são carregados do jsDelivr.";
   if (!useAI) aiConsent.checked = false;
   clearError();
@@ -286,6 +298,7 @@ function updateProcessingMode() {
 
 function resetApp() {
   input.value = "";
+  syncAIReviewText();
   localMode.checked = true;
   aiConsent.checked = false;
   updateProcessingMode();
@@ -308,7 +321,7 @@ async function loadFile(file) {
   buttonLabel.textContent = "Lendo arquivo…";
   try {
     input.value = await extractResumeText(file);
-    aiConsent.checked = false;
+    syncAIReviewText();
     updateCharacterCount();
     clearError();
     showToast(`Arquivo "${file.name}" carregado. Revise o texto antes de organizar.`);
@@ -361,8 +374,12 @@ function downloadResult() {
 }
 
 input.addEventListener("input", () => {
-  aiConsent.checked = false;
+  syncAIReviewText();
   updateCharacterCount();
+  clearError();
+});
+aiReviewText.addEventListener("input", () => {
+  aiConsent.checked = false;
   clearError();
 });
 processButton.addEventListener("click", processResume);
@@ -371,7 +388,7 @@ localMode.addEventListener("change", updateProcessingMode);
 aiMode.addEventListener("change", updateProcessingMode);
 document.querySelector("#load-example").addEventListener("click", () => {
   input.value = SAMPLE_RESUME;
-  aiConsent.checked = false;
+  syncAIReviewText();
   updateCharacterCount();
   clearError();
   input.focus();

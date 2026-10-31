@@ -77,12 +77,16 @@
 
             <div class="ai-consent-panel" id="ai-consent-panel" hidden>
               <p class="ai-processing-notice">
-                A opção com IA envia o texto integral do currículo à OpenAI para processamento.
-                Ele pode conter dados pessoais. O aplicativo não armazena esse texto no servidor.
+                Revise o texto abaixo e remova os dados pessoais que não quiser compartilhar, como
+                nome, telefone, e-mail, endereço ou links. Somente esta versão será enviada à OpenAI.
+                O aplicativo não armazena esse texto no servidor.
               </p>
+              <label class="ai-review-label" for="ai-review-text">Texto que será enviado à OpenAI</label>
+              <textarea id="ai-review-text" spellcheck="false" aria-describedby="ai-review-help"></textarea>
+              <span class="ai-review-help" id="ai-review-help">Você pode editar ou apagar qualquer trecho antes de continuar.</span>
               <label class="ai-consent">
                 <input id="ai-consent" type="checkbox" />
-                <span>Concordo em enviar este currículo à OpenAI para extração.</span>
+                <span>Concordo em enviar à OpenAI somente o texto revisado acima.</span>
               </label>
             </div>
 
