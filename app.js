@@ -116,30 +116,21 @@ function showToast(message) {
   toastTimeout = window.setTimeout(() => toast.classList.remove("is-visible"), 2400);
 }
 
-function addField(dl, label, value) {
+function addField(dl, label, value, path, { multiline = false, list = false } = {}) {
   const term = document.createElement("dt");
   term.textContent = label;
   const definition = document.createElement("dd");
-
-  if (Array.isArray(value)) {
-    if (value.length) {
-      const list = document.createElement("ul");
-      value.forEach((item) => {
-        const entry = document.createElement("li");
-        entry.textContent = item;
-        list.append(entry);
-      });
-      definition.append(list);
-    } else {
-      definition.textContent = "Não identificado";
-      definition.classList.add("is-empty");
-    }
-  } else if (value) {
-    definition.textContent = value;
-  } else {
-    definition.textContent = "Não identificado";
-    definition.classList.add("is-empty");
-  }
+  const editor = document.createElement(list || multiline ? "textarea" : "input");
+  editor.className = "result-field-editor";
+  editor.setAttribute("aria-label", label);
+  editor.dataset.fieldPath = path.join(".");
+  editor.dataset.fieldFormat = list ? "list" : "text";
+  editor.placeholder = "Não identificado";
+  if (list) editor.rows = Math.max(2, Math.min(5, value.length || 2));
+  else if (multiline) editor.rows = 3;
+  else editor.type = "text";
+  editor.value = list ? value.join("\n") : value ?? "";
+  definition.append(editor);
 
   dl.append(term, definition);
 }
@@ -161,11 +152,13 @@ function renderBlock(block, result) {
   const value = result[block.key];
   const dl = document.createElement("dl");
   if (block.type === "fields") {
-    for (const [label, key] of block.fields) addField(dl, label, value[key]);
+    for (const [label, key] of block.fields) {
+      addField(dl, label, value[key], [block.key, key], { list: Array.isArray(value[key]) });
+    }
   } else if (block.type === "list") {
-    addField(dl, "Itens", value);
+    addField(dl, "Itens", value, [block.key], { list: true });
   } else {
-    addField(dl, "Resumo", value);
+    addField(dl, "Resumo", value, [block.key], { multiline: true });
   }
   article.append(dl);
   return article;
@@ -180,6 +173,30 @@ function countRecognizedValues(value) {
   return value ? 1 : 0;
 }
 
+function updateResultSummary() {
+  const found = countRecognizedValues(currentResult);
+  resultCount.textContent = `${found} ${found === 1 ? "dado" : "dados"}`;
+  resultSummary.textContent = found
+    ? `${found} informações identificadas. Confira os campos antes de usar.`
+    : "Nenhuma informação conhecida foi identificada. Tente incluir títulos claros no currículo.";
+}
+
+function updateEditedResult(event) {
+  const editor = event.target.closest(".result-field-editor");
+  if (!editor || !currentResult) return;
+
+  const path = editor.dataset.fieldPath.split(".");
+  const property = path.pop();
+  const parent = path.reduce((value, key) => value[key], currentResult);
+  parent[property] =
+    editor.dataset.fieldFormat === "list"
+      ? editor.value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)
+      : editor.value || null;
+
+  jsonOutput.textContent = JSON.stringify([currentResult], null, 2);
+  updateResultSummary();
+}
+
 function renderResult(result, mode = "local") {
   currentResult = result;
   blockList.replaceChildren(...BLOCKS.map((block) => renderBlock(block, result)));
@@ -189,12 +206,8 @@ function renderResult(result, mode = "local") {
       ? "A IA ajudou a organizar o currículo após seu consentimento. Confira todos os campos antes de usar."
       : "A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de usá-los: currículos sem títulos claros podem precisar de ajustes.";
 
-  const found = countRecognizedValues(result);
-  resultCount.textContent = `${found} ${found === 1 ? "dado" : "dados"}`;
   resultCount.hidden = false;
-  resultSummary.textContent = found
-    ? `${found} informações identificadas. Confira os campos antes de usar.`
-    : "Nenhuma informação conhecida foi identificada. Tente incluir títulos claros no currículo.";
+  updateResultSummary();
 
   emptyState.hidden = true;
   resultsContent.hidden = false;
@@ -367,6 +380,7 @@ document.querySelector("#choose-file").addEventListener("click", () => fileInput
 fileInput.addEventListener("change", () => loadFile(fileInput.files[0]));
 document.querySelector("#copy-button").addEventListener("click", copyResult);
 document.querySelector("#download-button").addEventListener("click", downloadResult);
+blockList.addEventListener("input", updateEditedResult);
 
 for (const eventName of ["dragenter", "dragover"]) {
   dropZone.addEventListener(eventName, (event) => {

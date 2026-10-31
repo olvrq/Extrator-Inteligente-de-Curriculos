@@ -625,6 +625,13 @@ textarea:focus {
   font-size: 10px;
 }
 
+.edit-hint {
+  margin: -3px 0 9px;
+  color: #92939a;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
 .toolbar-actions {
   display: flex;
   gap: 6px;
@@ -717,20 +724,38 @@ textarea:focus {
   overflow-wrap: anywhere;
 }
 
-.data-block dd.is-empty {
+.data-block .result-field-editor {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  padding: 5px 7px;
+  border: 1px solid #e8e8eb;
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+  color: #53545b;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.data-block textarea.result-field-editor {
+  height: auto;
+  min-height: 40px;
+  resize: vertical;
+}
+
+.data-block .result-field-editor:focus {
+  border-color: #ed9188;
+  box-shadow: 0 0 0 3px rgba(233, 75, 60, 0.08);
+}
+
+.data-block .result-field-editor::placeholder {
   color: #aeafb5;
   font-style: italic;
-}
-
-.data-block dd ul {
-  display: grid;
-  gap: 3px;
-  margin: 0;
-  padding-left: 14px;
-}
-
-.data-block dd li::marker {
-  color: #d68a82;
 }
 
 .json-details {
