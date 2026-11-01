@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Organize as informações de um currículo em blocos estruturados, diretamente no navegador."
+      content="Organize as informações de um currículo em blocos estruturados e baixe em PDF ou Word com formatação profissional."
     />
-    <meta name="theme-color" content="#f7f7f8" />
+    <meta name="theme-color" content="#f7f7f4" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>Currículo em blocos — extrator</title>
+    <title>Currículo em blocos — Extrator Inteligente de Currículos</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -17,21 +17,18 @@
       <header class="topbar">
         <a class="brand" href="/" aria-label="Currículo em blocos, início">
           <span class="brand-mark" aria-hidden="true">cv</span>
-          <span>currículo<span class="brand-light">em blocos</span></span>
+          <span class="brand-name">currículo <span class="brand-light">em blocos</span></span>
         </a>
-        <span class="privacy-pill" id="privacy-pill">
-          <span class="privacy-dot" aria-hidden="true"></span>
-          Processamento local
-        </span>
+        <span class="topbar-meta">PDF · DOCX · JSON</span>
       </header>
 
       <main>
         <section class="intro" aria-labelledby="page-title">
-          <p class="eyebrow"><span class="eyebrow-line"></span> ORGANIZE EM SEGUNDOS</p>
-          <h1 id="page-title">Do currículo ao <span>essencial.</span></h1>
+          <p class="eyebrow"><span class="eyebrow-line"></span> EXTRATOR INTELIGENTE DE CURRÍCULOS</p>
+          <h1 id="page-title">Do currículo bruto ao <em>documento estruturado.</em></h1>
           <p class="intro-copy">
-            Cole o texto ou envie um arquivo PDF ou Word para organizar contatos, formação,
-            objetivo e outras informações em blocos prontos para revisar.
+            Cole o texto ou envie um arquivo PDF ou Word para estruturar contatos, formação,
+            experiência e competências em blocos revisáveis e prontos para exportação.
           </p>
         </section>
 
@@ -49,24 +46,13 @@
             <textarea
               id="resume-text"
               spellcheck="false"
-              placeholder="Cole aqui o texto completo do currículo…&#10;&#10;Dica: inclua títulos como Formação, Objetivo, Cursos, Idiomas e Projetos para uma organização mais precisa."
+              placeholder="Cole aqui o texto completo do currículo…&#10;&#10;Dica: inclua títulos como Formação, Objetivo, Experiência, Cursos, Idiomas e Projetos para uma organização mais precisa."
             ></textarea>
 
             <div class="input-meta">
               <span id="character-count">0 caracteres</span>
               <button class="text-button" id="load-example" type="button">Usar exemplo</button>
             </div>
-
-            <fieldset class="processing-options">
-              <legend>Como organizar o currículo?</legend>
-              <label class="processing-option">
-                <input id="mode-local" name="processing-mode" type="radio" value="local" checked />
-                <span>
-                  <strong>Local</strong>
-                  <small>O texto fica neste navegador.</small>
-                </span>
-              </label>
-            </fieldset>
 
             <div class="drop-zone" id="drop-zone">
               <span class="upload-icon" aria-hidden="true">
@@ -79,14 +65,6 @@
                 <span>Arraste um .txt, .md, .pdf, .doc ou .docx, ou <button class="text-button" id="choose-file" type="button">escolha no dispositivo</button></span>
               </div>
               <input id="file-input" type="file" accept=".txt,.md,.pdf,.doc,.docx,text/plain,text/markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden />
-            </div>
-
-            <div class="privacy-note">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <rect x="4.5" y="8.5" width="11" height="8" rx="1.5" />
-                <path d="M7 8.5V6a3 3 0 0 1 6 0v2.5m-3 3v2" />
-              </svg>
-              <span id="privacy-note-text">No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF, .doc e .docx são carregados do jsDelivr.</span>
             </div>
 
             <div class="form-actions">
@@ -116,14 +94,40 @@
                 <div class="paper paper-front">
                   <span></span><span></span><span></span><i></i>
                 </div>
-                <span class="spark spark-one"></span>
-                <span class="spark spark-two"></span>
               </div>
               <h3>Seu resultado aparece aqui</h3>
               <p>Adicione um currículo ao lado e clique em <strong>Organizar currículo</strong>.</p>
             </div>
 
             <div class="results-content" id="results-content" hidden>
+              <div class="export-banner">
+                <div class="export-banner-header">
+                  <div>
+                    <h3 class="export-title">Seu currículo está organizado</h3>
+                    <p class="export-description">Seu documento está pronto para baixar e editar.</p>
+                  </div>
+                  <button class="text-button" id="new-resume-button" type="button">
+                    Organizar outro currículo
+                  </button>
+                </div>
+
+                <div class="export-actions">
+                  <button class="export-primary-button" id="download-pdf-button" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M6 2.75h5.5L15.25 6.5v10A1.25 1.25 0 0 1 14 17.75H6A1.25 1.25 0 0 1 4.75 16.5V4A1.25 1.25 0 0 1 6 2.75Z" />
+                      <path d="M11.25 2.75V6.5H15M7.5 11.5h5M7.5 14h3.5" />
+                    </svg>
+                    <span>Baixar PDF</span>
+                  </button>
+                  <button class="export-secondary-button" id="download-word-button" type="button">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M10 3.25v9m0 0 3.25-3.25M10 12.25 6.75 9M4.25 13.75v2A1.25 1.25 0 0 0 5.5 17h9a1.25 1.25 0 0 0 1.25-1.25v-2" />
+                    </svg>
+                    <span>Baixar Word</span>
+                  </button>
+                </div>
+              </div>
+
               <div class="results-toolbar">
                 <p id="result-summary"></p>
                 <div class="toolbar-actions">
@@ -138,17 +142,17 @@
                     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                       <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2" />
                     </svg>
-                    <span>Baixar</span>
+                    <span>JSON</span>
                   </button>
                 </div>
               </div>
 
-              <p class="edit-hint">Edite os campos antes de copiar ou baixar. Nas listas, use um item por linha.</p>
+              <p class="edit-hint">Edite os campos antes de baixar em PDF, Word ou JSON. Nas listas, use um item por linha.</p>
               <div class="block-list" id="block-list"></div>
 
               <details class="json-details">
                 <summary>
-                  <span>Ver resultado em JSON</span>
+                  <span>Ver estrutura em JSON</span>
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="m5 7.5 5 5 5-5" />
                   </svg>
@@ -163,6 +167,7 @@
 
       <footer class="footer">
         <span>Feito para organizar, não para adivinhar.</span>
+        <span class="footer-meta">Exportação padrão A4 · ABNT (PDF e DOCX)</span>
       </footer>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>

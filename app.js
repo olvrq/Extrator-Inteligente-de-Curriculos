@@ -1,9 +1,13 @@
 import { parseResume } from "./resume-parser.mjs";
 import { extractResumeText, ResumeFileError } from "./document-extractor.mjs";
+import { generateResumeDocx, generateResumePdf } from "./resume-exporter.mjs";
 
 const input = document.querySelector("#resume-text");
 const processButton = document.querySelector("#process-button");
 const clearButton = document.querySelector("#clear-button");
+const newResumeButton = document.querySelector("#new-resume-button");
+const downloadPdfButton = document.querySelector("#download-pdf-button");
+const downloadWordButton = document.querySelector("#download-word-button");
 const fileInput = document.querySelector("#file-input");
 const dropZone = document.querySelector("#drop-zone");
 const characterCount = document.querySelector("#character-count");
@@ -15,12 +19,10 @@ const resultSummary = document.querySelector("#result-summary");
 const blockList = document.querySelector("#block-list");
 const jsonOutput = document.querySelector("#json-output");
 const toast = document.querySelector("#toast");
-const localMode = document.querySelector("#mode-local");
-const privacyPill = document.querySelector("#privacy-pill");
-const privacyNote = document.querySelector("#privacy-note-text");
 const reviewNote = document.querySelector("#review-note");
 
 let currentResult = null;
+let currentRawText = "";
 let toastTimeout;
 
 const SAMPLE_RESUME = `MARIA OLIVEIRA
@@ -174,7 +176,7 @@ function updateResultSummary() {
   const found = countRecognizedValues(currentResult);
   resultCount.textContent = `${found} ${found === 1 ? "dado" : "dados"}`;
   resultSummary.textContent = found
-    ? `${found} informações identificadas. Confira os campos antes de usar.`
+    ? `${found} informações identificadas. Confira os campos abaixo.`
     : "Nenhuma informação conhecida foi identificada. Tente incluir títulos claros no currículo.";
 }
 
@@ -199,7 +201,7 @@ function renderResult(result) {
   blockList.replaceChildren(...BLOCKS.map((block) => renderBlock(block, result)));
   jsonOutput.textContent = JSON.stringify([result], null, 2);
   reviewNote.textContent =
-    "A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de usá-los: currículos sem títulos claros podem precisar de ajustes.";
+    "Os documentos PDF e Word são gerados em formato A4 seguindo padrões acadêmicos e ABNT, contendo exclusivamente os dados revisados acima.";
 
   resultCount.hidden = false;
   updateResultSummary();
@@ -220,6 +222,7 @@ async function processResume() {
   processButton.disabled = true;
   processButton.querySelector("span").textContent = "Organizando…";
   try {
+    currentRawText = text;
     const result = parseResume(text);
     renderResult(result);
   } catch (error) {
@@ -230,18 +233,10 @@ async function processResume() {
   }
 }
 
-function updateProcessingMode() {
-  privacyPill.lastChild.textContent = "Processamento local";
-  privacyNote.textContent =
-    "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF, .doc e .docx são carregados do jsDelivr.";
-  clearError();
-}
-
 function resetApp() {
   input.value = "";
-  localMode.checked = true;
-  updateProcessingMode();
   currentResult = null;
+  currentRawText = "";
   clearError();
   updateCharacterCount();
   blockList.replaceChildren();
@@ -276,6 +271,60 @@ async function loadFile(file) {
   }
 }
 
+function buildFileSlug() {
+  const rawName = currentResult?.bloco_1_contato?.nome || "curriculo-organizado";
+  const slug = rawName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "curriculo-organizado";
+}
+
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadPdfResume() {
+  if (!currentResult) return;
+  downloadPdfButton.disabled = true;
+  try {
+    const pdfBytes = generateResumePdf(currentResult, currentRawText);
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    triggerBlobDownload(blob, `${buildFileSlug()}.pdf`);
+    showToast("Currículo em PDF baixado.");
+  } catch {
+    showError("Não foi possível gerar o arquivo PDF. Tente novamente.");
+  } finally {
+    downloadPdfButton.disabled = false;
+  }
+}
+
+async function downloadWordResume() {
+  if (!currentResult) return;
+  downloadWordButton.disabled = true;
+  try {
+    const docxBytes = await generateResumeDocx(currentResult, currentRawText);
+    const blob = new Blob([docxBytes], {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    triggerBlobDownload(blob, `${buildFileSlug()}.docx`);
+    showToast("Currículo em Word (.docx) baixado.");
+  } catch {
+    showError("Não foi possível gerar o arquivo Word. Tente novamente.");
+  } finally {
+    downloadWordButton.disabled = false;
+  }
+}
+
 async function copyResult() {
   if (!currentResult) return;
   const content = JSON.stringify([currentResult], null, 2);
@@ -300,14 +349,7 @@ function downloadResult() {
   const blob = new Blob([`${JSON.stringify([currentResult], null, 2)}\n`], {
     type: "application/json;charset=utf-8",
   });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "curriculo-organizado.json";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  triggerBlobDownload(blob, `${buildFileSlug()}.json`);
   showToast("Arquivo JSON baixado.");
 }
 
@@ -317,7 +359,9 @@ input.addEventListener("input", () => {
 });
 processButton.addEventListener("click", processResume);
 clearButton.addEventListener("click", resetApp);
-localMode.addEventListener("change", updateProcessingMode);
+newResumeButton.addEventListener("click", resetApp);
+downloadPdfButton.addEventListener("click", downloadPdfResume);
+downloadWordButton.addEventListener("click", downloadWordResume);
 document.querySelector("#load-example").addEventListener("click", () => {
   input.value = SAMPLE_RESUME;
   updateCharacterCount();
@@ -349,4 +393,3 @@ dropZone.addEventListener("click", (event) => {
 });
 
 updateCharacterCount();
-updateProcessingMode();
