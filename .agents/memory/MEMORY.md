@@ -1,0 +1,1 @@
+- [Commit language](commit-language.md) — write new commit messages in Portuguese, as the project owner requested.
