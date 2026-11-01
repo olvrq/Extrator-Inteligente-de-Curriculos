@@ -290,8 +290,8 @@ function updateProcessingMode() {
   if (useAI && aiReviewText.value === "" && input.value !== "") syncAIReviewText();
   privacyPill.lastChild.textContent = useAI ? "IA selecionada" : "Processamento local";
   privacyNote.textContent = useAI
-    ? "O arquivo é lido neste navegador. Somente o texto revisado acima será enviado à OpenAI após seu consentimento. Os leitores de PDF e Word são carregados do jsDelivr."
-    : "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF e Word são carregados do jsDelivr.";
+    ? "O arquivo é lido neste navegador. Somente o texto revisado acima será enviado à OpenAI após seu consentimento. Os leitores de PDF, .doc e .docx são carregados do jsDelivr."
+    : "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF, .doc e .docx são carregados do jsDelivr.";
   if (!useAI) aiConsent.checked = false;
   clearError();
 }

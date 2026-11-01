@@ -1,9 +1,12 @@
 const PDFJS_MODULE_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.min.mjs";
 const PDFJS_WORKER_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs";
 const MAMMOTH_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
+const LEGACY_DOC_READER_URL =
+  "https://cdn.jsdelivr.net/gh/Alpaq92/JSDoc@821695a884e0c0bb8592a635d9524bb3e116cd67/src/docToText.js";
 
 let pdfJsPromise;
 let mammothPromise;
+let legacyDocReaderPromise;
 
 export class ResumeFileError extends Error {
   constructor(message, code) {
@@ -71,6 +74,34 @@ async function getMammoth() {
   return mammothPromise;
 }
 
+async function getLegacyDocReader() {
+  if (!legacyDocReaderPromise) {
+    legacyDocReaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = LEGACY_DOC_READER_URL;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.dataset.resumeDocReader = "true";
+      script.onload = () => {
+        if (typeof window.docToText === "function") {
+          resolve(window.docToText);
+        } else {
+          reject(new Error("O leitor de documentos Word antigos não foi disponibilizado."));
+        }
+      };
+      script.onerror = () => reject(new Error("Não foi possível carregar o leitor de documentos Word antigos."));
+      document.head.append(script);
+    }).catch(() => {
+      legacyDocReaderPromise = undefined;
+      throw new ResumeFileError(
+        "Não foi possível carregar o leitor de .doc. Verifique sua conexão e tente novamente. O arquivo continua no seu dispositivo.",
+        "reader-unavailable",
+      );
+    });
+  }
+  return legacyDocReaderPromise;
+}
+
 function hasEncryptedOfficeHeader(buffer) {
   if (buffer.byteLength < 8) return false;
   const signature = new Uint8Array(buffer, 0, 8);
@@ -86,6 +117,13 @@ function requireExtractedText(text, type) {
   if (type === "pdf") {
     throw new ResumeFileError(
       "Este PDF não tem texto extraível. Ele pode ser digitalizado como imagem; a leitura por OCR não está disponível. Tente um PDF com texto selecionável ou cole o conteúdo.",
+      "no-text",
+    );
+  }
+
+  if (type === "doc") {
+    throw new ResumeFileError(
+      "Não encontramos texto extraível neste arquivo .doc. Ele pode estar protegido, corrompido ou usar uma versão antiga do Word. Tente salvar como .docx ou colar o conteúdo.",
       "no-text",
     );
   }
@@ -179,12 +217,33 @@ async function extractDocx(file) {
   }
 }
 
+async function extractLegacyDoc(file) {
+  const docToText = await getLegacyDocReader();
+  let text;
+  try {
+    text = docToText(new Uint8Array(await file.arrayBuffer()));
+  } catch {
+    throw new ResumeFileError(
+      "Não foi possível ler este arquivo .doc. Verifique se ele está íntegro e tente novamente.",
+      "invalid-file",
+    );
+  }
+
+  if (text === null || typeof text !== "string") {
+    throw new ResumeFileError(
+      "Não foi possível ler este arquivo .doc. Ele pode estar protegido, corrompido ou usar uma versão antiga do Word. Tente salvar como .docx ou colar o conteúdo.",
+      "unsupported",
+    );
+  }
+  return requireExtractedText(text, "doc");
+}
+
 export async function extractResumeText(file) {
   const extension = fileExtension(file);
   const isTextFile =
     extension === "txt" ||
     extension === "md" ||
-    (!["pdf", "docx"].includes(extension) && ["text/plain", "text/markdown"].includes(file.type));
+    (!["pdf", "doc", "docx"].includes(extension) && ["text/plain", "text/markdown"].includes(file.type));
   if (isTextFile) {
     try {
       return await file.text();
@@ -194,10 +253,11 @@ export async function extractResumeText(file) {
   }
 
   if (extension === "pdf") return extractPdf(file);
+  if (extension === "doc") return extractLegacyDoc(file);
   if (extension === "docx") return extractDocx(file);
 
   throw new ResumeFileError(
-    "Formato não compatível. Envie um arquivo .txt, .md, .pdf ou .docx.",
+    "Formato não compatível. Envie um arquivo .txt, .md, .pdf, .doc ou .docx.",
     "unsupported",
   );
 }
