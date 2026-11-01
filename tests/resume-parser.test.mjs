@@ -8,6 +8,7 @@ import {
   buildStructuredResume,
   generateResumeDocx,
   generateResumePdf,
+  generateResumePlainText,
 } from "../resume-exporter.mjs";
 import { isResumeResult, parseResume, RESUME_RESULT_SCHEMA } from "../resume-parser.mjs";
 
@@ -245,15 +246,35 @@ test("PDF exporter generates a valid A4 PDF with selectable text and multi-page 
   assert.match(pdfString, /\/Count [234]/);
 });
 
-test("HTML and CSS reflect local section removal, export actions, and Cursor Style Reference tokens", () => {
+test("Plain text exporter formats structured resume without JSON or technical markup", () => {
+  const parsed = parseResume(SAMPLE_RESUME);
+  const plainText = generateResumePlainText(parsed, SAMPLE_RESUME);
+
+  assert.match(plainText, /^MARIA OLIVEIRA\n\nDADOS PESSOAIS\n/);
+  assert.match(plainText, /E-mail: maria\.oliveira@example\.com/);
+  assert.match(plainText, /Telefone: \(11\) 98888-7777/);
+  assert.match(plainText, /Cidade: São Paulo, SP/);
+  assert.match(plainText, /OBJETIVO PROFISSIONAL\nAtuar como desenvolvedora front-end/);
+  assert.match(plainText, /FORMAÇÃO ACADÊMICA\n• Análise e Desenvolvimento de Sistemas/);
+  assert.match(plainText, /COMPETÊNCIAS TÉCNICAS\n• JavaScript/);
+  assert.match(plainText, /IDIOMAS\n• Português \(nativo\)/);
+  assert.equal(plainText.includes("bloco_1_contato"), false);
+  assert.equal(plainText.includes("{"), false);
+});
+
+test("HTML and CSS reflect local and JSON removal, copy text button, export actions, and Cursor Style Reference tokens", () => {
   const html = readFileSync(resolve("index.html"), "utf8");
   const css = readFileSync(resolve("styles.css"), "utf8");
 
   assert.equal(html.includes("Como organizar o currículo?"), false);
   assert.equal(html.includes("O texto fica neste navegador."), false);
   assert.equal(html.includes('id="mode-local"'), false);
+  assert.equal(html.includes("Ver estrutura em JSON"), false);
+  assert.equal(html.includes("Copiar JSON"), false);
+  assert.equal(html.includes('id="json-output"'), false);
   assert.equal(html.includes("Seu currículo está organizado"), true);
   assert.equal(html.includes("Seu documento está pronto para baixar e editar."), true);
+  assert.equal(html.includes("Copiar texto para colar"), true);
   assert.equal(html.includes("Baixar PDF"), true);
   assert.equal(html.includes("Baixar Word"), true);
 

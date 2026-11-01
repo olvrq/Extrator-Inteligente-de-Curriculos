@@ -1,11 +1,16 @@
 import { parseResume } from "./resume-parser.mjs";
 import { extractResumeText, ResumeFileError } from "./document-extractor.mjs";
-import { generateResumeDocx, generateResumePdf } from "./resume-exporter.mjs";
+import {
+  generateResumeDocx,
+  generateResumePdf,
+  generateResumePlainText,
+} from "./resume-exporter.mjs";
 
 const input = document.querySelector("#resume-text");
 const processButton = document.querySelector("#process-button");
 const clearButton = document.querySelector("#clear-button");
 const newResumeButton = document.querySelector("#new-resume-button");
+const copyTextButton = document.querySelector("#copy-text-button");
 const downloadPdfButton = document.querySelector("#download-pdf-button");
 const downloadWordButton = document.querySelector("#download-word-button");
 const fileInput = document.querySelector("#file-input");
@@ -17,13 +22,13 @@ const resultsContent = document.querySelector("#results-content");
 const resultCount = document.querySelector("#result-count");
 const resultSummary = document.querySelector("#result-summary");
 const blockList = document.querySelector("#block-list");
-const jsonOutput = document.querySelector("#json-output");
 const toast = document.querySelector("#toast");
 const reviewNote = document.querySelector("#review-note");
 
 let currentResult = null;
 let currentRawText = "";
 let toastTimeout;
+let copyFeedbackTimeout;
 
 const SAMPLE_RESUME = `MARIA OLIVEIRA
 São Paulo, SP
@@ -192,14 +197,12 @@ function updateEditedResult(event) {
       ? editor.value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)
       : editor.value || null;
 
-  jsonOutput.textContent = JSON.stringify([currentResult], null, 2);
   updateResultSummary();
 }
 
 function renderResult(result) {
   currentResult = result;
   blockList.replaceChildren(...BLOCKS.map((block) => renderBlock(block, result)));
-  jsonOutput.textContent = JSON.stringify([result], null, 2);
   reviewNote.textContent =
     "Os documentos PDF e Word são gerados em formato A4 seguindo padrões acadêmicos e ABNT, contendo exclusivamente os dados revisados acima.";
 
@@ -240,7 +243,6 @@ function resetApp() {
   clearError();
   updateCharacterCount();
   blockList.replaceChildren();
-  jsonOutput.textContent = "";
   resultCount.hidden = true;
   resultsContent.hidden = true;
   emptyState.hidden = false;
@@ -325,32 +327,46 @@ async function downloadWordResume() {
   }
 }
 
-async function copyResult() {
+async function copyPlainTextResume() {
   if (!currentResult) return;
-  const content = JSON.stringify([currentResult], null, 2);
-  try {
-    await navigator.clipboard.writeText(content);
-    showToast("JSON copiado para a área de transferência.");
-  } catch {
-    const temporary = document.createElement("textarea");
-    temporary.value = content;
-    temporary.style.position = "fixed";
-    temporary.style.opacity = "0";
-    document.body.append(temporary);
-    temporary.select();
-    const copied = document.execCommand("copy");
-    temporary.remove();
-    showToast(copied ? "JSON copiado para a área de transferência." : "Não foi possível copiar. Use a área de JSON.");
+  const plainText = generateResumePlainText(currentResult, currentRawText);
+  if (!plainText) {
+    showToast("Não foi possível copiar: nenhum dado disponível.");
+    return;
   }
-}
 
-function downloadResult() {
-  if (!currentResult) return;
-  const blob = new Blob([`${JSON.stringify([currentResult], null, 2)}\n`], {
-    type: "application/json;charset=utf-8",
-  });
-  triggerBlobDownload(blob, `${buildFileSlug()}.json`);
-  showToast("Arquivo JSON baixado.");
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(plainText);
+    copied = true;
+  } catch {
+    try {
+      const temporary = document.createElement("textarea");
+      temporary.value = plainText;
+      temporary.style.position = "fixed";
+      temporary.style.opacity = "0";
+      document.body.append(temporary);
+      temporary.select();
+      copied = document.execCommand("copy");
+      temporary.remove();
+    } catch {
+      copied = false;
+    }
+  }
+
+  if (copied) {
+    showToast("Texto copiado com sucesso!");
+    const labelSpan = copyTextButton.querySelector("span");
+    if (labelSpan) {
+      window.clearTimeout(copyFeedbackTimeout);
+      labelSpan.textContent = "Texto copiado com sucesso!";
+      copyFeedbackTimeout = window.setTimeout(() => {
+        labelSpan.textContent = "Copiar texto para colar";
+      }, 2400);
+    }
+  } else {
+    showToast("Não foi possível copiar o texto. Tente novamente.");
+  }
 }
 
 input.addEventListener("input", () => {
@@ -360,6 +376,7 @@ input.addEventListener("input", () => {
 processButton.addEventListener("click", processResume);
 clearButton.addEventListener("click", resetApp);
 newResumeButton.addEventListener("click", resetApp);
+copyTextButton.addEventListener("click", copyPlainTextResume);
 downloadPdfButton.addEventListener("click", downloadPdfResume);
 downloadWordButton.addEventListener("click", downloadWordResume);
 document.querySelector("#load-example").addEventListener("click", () => {
@@ -370,8 +387,6 @@ document.querySelector("#load-example").addEventListener("click", () => {
 });
 document.querySelector("#choose-file").addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => loadFile(fileInput.files[0]));
-document.querySelector("#copy-button").addEventListener("click", copyResult);
-document.querySelector("#download-button").addEventListener("click", downloadResult);
 blockList.addEventListener("input", updateEditedResult);
 
 for (const eventName of ["dragenter", "dragover"]) {

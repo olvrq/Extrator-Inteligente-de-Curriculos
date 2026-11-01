@@ -384,7 +384,6 @@ textarea:focus {
 }
 
 .primary-button svg,
-.subtle-button svg,
 .export-primary-button svg,
 .export-secondary-button svg {
   width: 16px;
@@ -554,6 +553,11 @@ textarea:focus {
 
 .export-actions {
   display: grid;
+  gap: 8px;
+}
+
+.export-download-row {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
@@ -564,6 +568,7 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  width: 100%;
   min-height: 40px;
   padding: 0 16px;
   border-radius: var(--radius-sm);
@@ -605,7 +610,7 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .results-toolbar p {
@@ -619,38 +624,6 @@ textarea:focus {
   color: var(--color-driftwood);
   font-size: 11px;
   line-height: 1.5;
-}
-
-.toolbar-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.subtle-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--color-stone);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-linen);
-  color: var(--color-ink);
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease;
-}
-
-.subtle-button:hover {
-  border-color: var(--color-driftwood);
-  background-color: var(--color-stone);
-}
-
-.subtle-button svg {
-  width: 14px;
-  height: 14px;
 }
 
 /* Editable Structured Blocks */
@@ -752,57 +725,6 @@ textarea:focus {
 .data-block .result-field-editor::placeholder {
   color: var(--color-mist);
   font-style: italic;
-}
-
-/* JSON Accordion */
-.json-details {
-  margin-top: 12px;
-  border: 1px solid var(--color-stone);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-parchment);
-}
-
-.json-details summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  color: var(--color-ash);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 400;
-  cursor: pointer;
-  list-style: none;
-}
-
-.json-details summary::-webkit-details-marker {
-  display: none;
-}
-
-.json-details summary svg {
-  width: 14px;
-  height: 14px;
-  stroke: var(--color-driftwood);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
-  transition: transform 150ms ease;
-}
-
-.json-details[open] summary svg {
-  transform: rotate(180deg);
-}
-
-.json-details pre {
-  max-height: 220px;
-  overflow: auto;
-  margin: 0;
-  padding: 12px;
-  border-top: 1px solid var(--color-stone);
-  color: var(--color-ink);
-  font: 11px/1.6 var(--font-mono);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 
 .review-note {
@@ -915,22 +837,13 @@ textarea:focus {
     align-items: flex-start;
   }
 
-  .export-actions {
+  .export-download-row {
     grid-template-columns: 1fr;
   }
 
   .results-toolbar {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .toolbar-actions {
-    width: 100%;
-  }
-
-  .subtle-button {
-    flex: 1;
-    justify-content: center;
   }
 
   .data-block dl {

@@ -254,6 +254,47 @@ export function buildStructuredResume(result, rawText = "") {
   };
 }
 
+/**
+ * Generates clean, structured plain text ready to paste into Word, Google Docs, or email.
+ * Contains zero JSON or technical markup.
+ */
+export function generateResumePlainText(result, rawText = "") {
+  const structured = buildStructuredResume(result, rawText);
+  const { dadosPessoais, sections } = structured;
+  const blocks = [];
+
+  if (dadosPessoais.nome) {
+    blocks.push(dadosPessoais.nome.toUpperCase());
+  }
+
+  const personalLines = [];
+  if (dadosPessoais.email) personalLines.push(`E-mail: ${dadosPessoais.email}`);
+  if (dadosPessoais.telefone) personalLines.push(`Telefone: ${dadosPessoais.telefone}`);
+  if (dadosPessoais.cidadeEstado) personalLines.push(`Cidade: ${dadosPessoais.cidadeEstado}`);
+  if (dadosPessoais.linkedin) personalLines.push(`LinkedIn: ${dadosPessoais.linkedin}`);
+  if (dadosPessoais.portfolioGithub.length > 0) {
+    const label =
+      dadosPessoais.portfolioGithub.length === 1 && result?.bloco_1_contato?.github
+        ? "GitHub"
+        : "Portfólio / GitHub";
+    personalLines.push(`${label}: ${dadosPessoais.portfolioGithub.join(" | ")}`);
+  }
+
+  if (personalLines.length > 0) {
+    blocks.push(["DADOS PESSOAIS", ...personalLines].join("\n"));
+  }
+
+  for (const section of sections) {
+    if (section.type === "paragraph") {
+      blocks.push(`${section.title}\n${section.text}`);
+    } else if (section.type === "list") {
+      blocks.push([section.title, ...section.items.map((item) => `• ${item}`)].join("\n"));
+    }
+  }
+
+  return blocks.join("\n\n").trim();
+}
+
 // ============================================================================
 // WORD (.DOCX) GENERATOR — Genuine OpenXML Package (A4 + ABNT Margins + Arial)
 // ============================================================================

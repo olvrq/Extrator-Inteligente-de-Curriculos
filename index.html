@@ -19,7 +19,7 @@
           <span class="brand-mark" aria-hidden="true">cv</span>
           <span class="brand-name">currículo <span class="brand-light">em blocos</span></span>
         </a>
-        <span class="topbar-meta">PDF · DOCX · JSON</span>
+        <span class="topbar-meta">PDF · DOCX · TEXTO</span>
       </header>
 
       <main>
@@ -112,53 +112,38 @@
                 </div>
 
                 <div class="export-actions">
-                  <button class="export-primary-button" id="download-pdf-button" type="button">
+                  <button class="export-primary-button" id="copy-text-button" type="button">
                     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M6 2.75h5.5L15.25 6.5v10A1.25 1.25 0 0 1 14 17.75H6A1.25 1.25 0 0 1 4.75 16.5V4A1.25 1.25 0 0 1 6 2.75Z" />
-                      <path d="M11.25 2.75V6.5H15M7.5 11.5h5M7.5 14h3.5" />
+                      <rect x="7" y="6" width="9" height="11" rx="1.5" />
+                      <path d="M13 6V4.5A1.5 1.5 0 0 0 11.5 3h-7A1.5 1.5 0 0 0 3 4.5v9A1.5 1.5 0 0 0 4.5 15H7" />
                     </svg>
-                    <span>Baixar PDF</span>
+                    <span>Copiar texto para colar</span>
                   </button>
-                  <button class="export-secondary-button" id="download-word-button" type="button">
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M10 3.25v9m0 0 3.25-3.25M10 12.25 6.75 9M4.25 13.75v2A1.25 1.25 0 0 0 5.5 17h9a1.25 1.25 0 0 0 1.25-1.25v-2" />
-                    </svg>
-                    <span>Baixar Word</span>
-                  </button>
+                  <div class="export-download-row">
+                    <button class="export-primary-button" id="download-pdf-button" type="button">
+                      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M6 2.75h5.5L15.25 6.5v10A1.25 1.25 0 0 1 14 17.75H6A1.25 1.25 0 0 1 4.75 16.5V4A1.25 1.25 0 0 1 6 2.75Z" />
+                        <path d="M11.25 2.75V6.5H15M7.5 11.5h5M7.5 14h3.5" />
+                      </svg>
+                      <span>Baixar PDF</span>
+                    </button>
+                    <button class="export-secondary-button" id="download-word-button" type="button">
+                      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M10 3.25v9m0 0 3.25-3.25M10 12.25 6.75 9M4.25 13.75v2A1.25 1.25 0 0 0 5.5 17h9a1.25 1.25 0 0 0 1.25-1.25v-2" />
+                      </svg>
+                      <span>Baixar Word</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <div class="results-toolbar">
                 <p id="result-summary"></p>
-                <div class="toolbar-actions">
-                  <button class="subtle-button" id="copy-button" type="button">
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <rect x="7" y="6" width="9" height="11" rx="1.5" />
-                      <path d="M13 6V4.5A1.5 1.5 0 0 0 11.5 3h-7A1.5 1.5 0 0 0 3 4.5v9A1.5 1.5 0 0 0 4.5 15H7" />
-                    </svg>
-                    <span>Copiar JSON</span>
-                  </button>
-                  <button class="subtle-button" id="download-button" type="button">
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2" />
-                    </svg>
-                    <span>JSON</span>
-                  </button>
-                </div>
               </div>
 
-              <p class="edit-hint">Edite os campos antes de baixar em PDF, Word ou JSON. Nas listas, use um item por linha.</p>
+              <p class="edit-hint">Edite os campos antes de copiar ou baixar em PDF e Word. Nas listas, use um item por linha.</p>
               <div class="block-list" id="block-list"></div>
 
-              <details class="json-details">
-                <summary>
-                  <span>Ver estrutura em JSON</span>
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="m5 7.5 5 5 5-5" />
-                  </svg>
-                </summary>
-                <pre id="json-output"></pre>
-              </details>
               <p class="review-note" id="review-note"></p>
             </div>
           </div>
