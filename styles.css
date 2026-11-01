@@ -101,7 +101,7 @@ button {
 
 .processing-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 8px;
   margin: 12px 0 10px;
   padding: 0;
@@ -119,6 +119,7 @@ button {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  width: 100%;
   min-height: 55px;
   padding: 9px 10px;
   border: 1px solid #e7e7ea;
@@ -132,8 +133,7 @@ button {
   background: #fff9f8;
 }
 
-.processing-option input,
-.ai-consent input {
+.processing-option input {
   flex: 0 0 auto;
   margin: 2px 0 0;
   accent-color: var(--accent);
@@ -154,57 +154,6 @@ button {
   color: #81828a;
   font-size: 9px;
   line-height: 1.4;
-}
-
-.ai-consent-panel {
-  margin: 0 0 12px;
-  padding: 11px 12px;
-  border: 1px solid #f0d6d3;
-  border-radius: 8px;
-  background: #fff8f7;
-}
-
-.ai-processing-notice {
-  margin: 0 0 10px;
-  color: #6a4542;
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.ai-review-label {
-  display: block;
-  margin-bottom: 5px;
-  color: #514342;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-#ai-review-text {
-  height: 140px;
-  min-height: 100px;
-  padding: 10px;
-  background: #fff;
-  font-size: 11px;
-}
-
-.ai-review-help {
-  display: block;
-  margin-top: 4px;
-  color: #8b7775;
-  font-size: 9px;
-  line-height: 1.4;
-}
-
-.ai-consent {
-  margin-top: 10px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: #39363a;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.45;
-  cursor: pointer;
 }
 
 .intro {

@@ -1,4 +1,4 @@
-import { isResumeResult, parseResume } from "./resume-parser.mjs";
+import { parseResume } from "./resume-parser.mjs";
 import { extractResumeText, ResumeFileError } from "./document-extractor.mjs";
 
 const input = document.querySelector("#resume-text");
@@ -16,10 +16,6 @@ const blockList = document.querySelector("#block-list");
 const jsonOutput = document.querySelector("#json-output");
 const toast = document.querySelector("#toast");
 const localMode = document.querySelector("#mode-local");
-const aiMode = document.querySelector("#mode-ai");
-const aiConsentPanel = document.querySelector("#ai-consent-panel");
-const aiConsent = document.querySelector("#ai-consent");
-const aiReviewText = document.querySelector("#ai-review-text");
 const privacyPill = document.querySelector("#privacy-pill");
 const privacyNote = document.querySelector("#privacy-note-text");
 const reviewNote = document.querySelector("#review-note");
@@ -110,11 +106,6 @@ function clearError() {
   inputError.hidden = true;
 }
 
-function syncAIReviewText() {
-  aiReviewText.value = input.value;
-  aiConsent.checked = false;
-}
-
 function showToast(message) {
   window.clearTimeout(toastTimeout);
   toast.textContent = message;
@@ -203,51 +194,18 @@ function updateEditedResult(event) {
   updateResultSummary();
 }
 
-function renderResult(result, mode = "local") {
+function renderResult(result) {
   currentResult = result;
   blockList.replaceChildren(...BLOCKS.map((block) => renderBlock(block, result)));
   jsonOutput.textContent = JSON.stringify([result], null, 2);
   reviewNote.textContent =
-    mode === "ai"
-      ? "A IA ajudou a organizar o currículo após seu consentimento. Confira todos os campos antes de usar."
-      : "A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de usá-los: currículos sem títulos claros podem precisar de ajustes.";
+    "A extração usa padrões de texto locais, sem IA externa. Revise os dados antes de usá-los: currículos sem títulos claros podem precisar de ajustes.";
 
   resultCount.hidden = false;
   updateResultSummary();
 
   emptyState.hidden = true;
   resultsContent.hidden = false;
-}
-
-async function extractWithAI(text) {
-  let response;
-  try {
-    response = await fetch("/api/ai/extract", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, consent: aiConsent.checked }),
-    });
-  } catch {
-    throw new Error("Não foi possível acessar o serviço de IA. Seu texto continua no campo; tente novamente ou use o modo local.");
-  }
-
-  let payload;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new Error("O serviço de IA retornou uma resposta inválida. Seu texto continua no campo.");
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      payload?.error ||
-        "Não foi possível organizar com IA. Seu texto continua no campo; tente novamente ou use o modo local.",
-    );
-  }
-  if (!isResumeResult(payload?.result)) {
-    throw new Error("A resposta da IA não passou pela validação. Seu texto continua no campo; tente novamente.");
-  }
-  return payload.result;
 }
 
 async function processResume() {
@@ -259,23 +217,11 @@ async function processResume() {
     return;
   }
 
-  const mode = aiMode.checked ? "ai" : "local";
-  if (mode === "ai" && !aiConsent.checked) {
-    showError("Confirme o consentimento antes de enviar o currículo à OpenAI.");
-    aiConsent.focus();
-    return;
-  }
-  if (mode === "ai" && !aiReviewText.value.trim()) {
-    showError("O texto revisado está vazio. Adicione conteúdo antes de enviar à OpenAI.");
-    aiReviewText.focus();
-    return;
-  }
-
   processButton.disabled = true;
-  processButton.querySelector("span").textContent = mode === "ai" ? "Enviando com consentimento…" : "Organizando…";
+  processButton.querySelector("span").textContent = "Organizando…";
   try {
-    const result = mode === "ai" ? await extractWithAI(aiReviewText.value) : parseResume(text);
-    renderResult(result, mode);
+    const result = parseResume(text);
+    renderResult(result);
   } catch (error) {
     showError(error instanceof Error ? error.message : "Não foi possível organizar este texto. Confira o conteúdo e tente novamente.");
   } finally {
@@ -285,22 +231,15 @@ async function processResume() {
 }
 
 function updateProcessingMode() {
-  const useAI = aiMode.checked;
-  aiConsentPanel.hidden = !useAI;
-  if (useAI && aiReviewText.value === "" && input.value !== "") syncAIReviewText();
-  privacyPill.lastChild.textContent = useAI ? "IA selecionada" : "Processamento local";
-  privacyNote.textContent = useAI
-    ? "O arquivo é lido neste navegador. Somente o texto revisado acima será enviado à OpenAI após seu consentimento. Os leitores de PDF, .doc e .docx são carregados do jsDelivr."
-    : "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF, .doc e .docx são carregados do jsDelivr.";
-  if (!useAI) aiConsent.checked = false;
+  privacyPill.lastChild.textContent = "Processamento local";
+  privacyNote.textContent =
+    "No modo local, seus arquivos são lidos neste navegador e não são enviados. Os leitores de PDF, .doc e .docx são carregados do jsDelivr.";
   clearError();
 }
 
 function resetApp() {
   input.value = "";
-  syncAIReviewText();
   localMode.checked = true;
-  aiConsent.checked = false;
   updateProcessingMode();
   currentResult = null;
   clearError();
@@ -321,7 +260,6 @@ async function loadFile(file) {
   buttonLabel.textContent = "Lendo arquivo…";
   try {
     input.value = await extractResumeText(file);
-    syncAIReviewText();
     updateCharacterCount();
     clearError();
     showToast(`Arquivo "${file.name}" carregado. Revise o texto antes de organizar.`);
@@ -374,21 +312,14 @@ function downloadResult() {
 }
 
 input.addEventListener("input", () => {
-  syncAIReviewText();
   updateCharacterCount();
-  clearError();
-});
-aiReviewText.addEventListener("input", () => {
-  aiConsent.checked = false;
   clearError();
 });
 processButton.addEventListener("click", processResume);
 clearButton.addEventListener("click", resetApp);
 localMode.addEventListener("change", updateProcessingMode);
-aiMode.addEventListener("change", updateProcessingMode);
 document.querySelector("#load-example").addEventListener("click", () => {
   input.value = SAMPLE_RESUME;
-  syncAIReviewText();
   updateCharacterCount();
   clearError();
   input.focus();

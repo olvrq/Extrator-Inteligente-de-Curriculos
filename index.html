@@ -66,29 +66,7 @@
                   <small>O texto fica neste navegador.</small>
                 </span>
               </label>
-              <label class="processing-option">
-                <input id="mode-ai" name="processing-mode" type="radio" value="ai" />
-                <span>
-                  <strong>Com IA</strong>
-                  <small>Ajuda a identificar informações sem títulos padronizados.</small>
-                </span>
-              </label>
             </fieldset>
-
-            <div class="ai-consent-panel" id="ai-consent-panel" hidden>
-              <p class="ai-processing-notice">
-                Revise o texto abaixo e remova os dados pessoais que não quiser compartilhar, como
-                nome, telefone, e-mail, endereço ou links. Somente esta versão será enviada à OpenAI.
-                O aplicativo não armazena esse texto no servidor.
-              </p>
-              <label class="ai-review-label" for="ai-review-text">Texto que será enviado à OpenAI</label>
-              <textarea id="ai-review-text" spellcheck="false" aria-describedby="ai-review-help"></textarea>
-              <span class="ai-review-help" id="ai-review-help">Você pode editar ou apagar qualquer trecho antes de continuar.</span>
-              <label class="ai-consent">
-                <input id="ai-consent" type="checkbox" />
-                <span>Concordo em enviar à OpenAI somente o texto revisado acima.</span>
-              </label>
-            </div>
 
             <div class="drop-zone" id="drop-zone">
               <span class="upload-icon" aria-hidden="true">
@@ -185,7 +163,6 @@
 
       <footer class="footer">
         <span>Feito para organizar, não para adivinhar.</span>
-        <span>No modo IA, o envio só ocorre após seu consentimento.</span>
       </footer>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </div>
